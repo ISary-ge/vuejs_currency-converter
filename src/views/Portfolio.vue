@@ -69,9 +69,10 @@ import DataTable from "primevue/datatable"
 import Column from "primevue/column"
 import InputText from "primevue/inputtext"
 import Dropdown from "primevue/dropdown"
+import Button from "primevue/button"
 export default {
 	name: "Potfolio",
-	components: { PieChart, DataTable, Column, InputText, Dropdown },
+	components: { PieChart, DataTable, Column, InputText, Dropdown, Button },
 	data() {
 		return {
 			isLoaded: false,

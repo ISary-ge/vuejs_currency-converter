@@ -30,9 +30,10 @@
 import LineChart from "@/components/Charts/LineChart.vue"
 import { mapActions, mapState } from "vuex"
 import Converter from "../components/Converter/Converter.vue"
+import Button from "primevue/button"
 export default {
 	name: "Home",
-	components: { LineChart, Converter },
+	components: { LineChart, Converter, Button },
 	data() {
 		return {
 			isLoaded: false,
