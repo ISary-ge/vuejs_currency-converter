@@ -5,9 +5,9 @@ export default createStore({
 	state() {
 		return {
 			currencies: [
-				{ id: "bitcoin", price: null },
-				{ id: "ethereum", price: null },
-				{ id: "usd", price: 1 },
+				{ id: "bitcoin", label: "BTC", price: null },
+				{ id: "ethereum", label: "ETH", price: null },
+				{ id: "usd", label: "USD", price: 1 },
 			],
 			baseValue: "usd",
 			activeCurrency: "bitcoin",

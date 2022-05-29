@@ -1,6 +1,8 @@
+const API_URL = "https://api.coingecko.com/api/v3"
+
 export const getDataForGraph = async (currency, baseValue, days, interval) => {
 	const f = await fetch(
-		`https://api.coingecko.com/api/v3/coins/${currency}/market_chart?vs_currency=${baseValue}&days=${days}&interval=${interval}`
+		`${API_URL}/coins/${currency}/market_chart?vs_currency=${baseValue}&days=${days}&interval=${interval}`
 	)
 	let data = null
 	if (!f.ok) {
@@ -17,7 +19,7 @@ export const getPrices = async (currencies, baseValue) => {
 	for (const currency of currencies) {
 		if (currency.price !== 1) {
 			const f = await fetch(
-				`https://api.coingecko.com/api/v3/simple/price?ids=${currency.id}&vs_currencies=${baseValue}`
+				`${API_URL}/simple/price?ids=${currency.id}&vs_currencies=${baseValue}`
 			)
 
 			const data = await f.json()
@@ -36,6 +38,5 @@ export const getPrices = async (currencies, baseValue) => {
 			})
 		}
 	}
-	console.log(result.length)
 	return result
 }

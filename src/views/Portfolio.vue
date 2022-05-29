@@ -1,71 +1,133 @@
 <template>
-	<div>Portfolio</div>
-	<p>Баланс: {{ totalBalance }} $</p>
-	<ul>
-		<li>биток</li>
-		<li>эфирчик</li>
-		<li>доллар</li>
-	</ul>
-	<p>Диаграмма распределния:</p>
+	<p v-if="isLoaded" class="text-center text-3xl text-primary font-semibold">
+		Balance : $ {{ totalBalance.toLocaleString() }}
+	</p>
 
-	<PieChart v-if="isLoaded" :labels="labels" :dataset="dataset" />
+	<div class="flex justify-content-center">
+		<InputText
+			v-model="inputCur"
+			v-bind:disabled="!isLoaded"
+			type="number"
+			class="p-inputtext-sm"
+		/>
+		<Button
+			label="+"
+			class="p-button-text"
+			@click="addToBalance"
+			:disabled="inputCur == 0"
+		/>
+		<Button
+			label="-"
+			@click="subFromBalance"
+			class="p-button-text"
+			:disabled="inputCur == 0"
+		/>
+		<Dropdown
+			v-model="selectedCur"
+			:options="currencies"
+			optionLabel="id"
+			optionValue="id"
+			:placeholder="selectedCur"
+			class="p-dropdown-sm"
+		/>
+	</div>
+	<div class="budget flex flex-column-sm mt-8">
+		<div>
+			<p class="text-center text-xl text-primary font-semibold">
+				Last Transactoins:
+			</p>
 
-	<input type="number" v-model="inputCur" />
-	<button @click="addToBalance" :disabled="inputCur == 0">Добавить коин</button>
-	<button @click="subFromBalance" :disabled="inputCur == 0">Отнять коин</button>
-	<select v-model="selectedCur">
-		<option value="bitcoin">биток</option>
-		<option value="usd">доллар</option>
-		<option value="ethereum">эфир</option>
-	</select>
-	<p>Последние транзакции</p>
-	<ul>
-		<li v-for="(transaction, index) in lastTransactions" :key="index">
-			{{ index }} == {{ transaction }}
-		</li>
-	</ul>
+			<DataTable
+				:value="lastTransactions"
+				stripedRows
+				responsiveLayout="scroll"
+				class="p-datatable-sm"
+				:paginator="true"
+				:rows="10"
+				sortField="date"
+				:sortOrder="-1"
+			>
+				<Column field="operation" header="Operation"></Column>
+				<Column field="currency" header="Currency"></Column>
+				<Column field="amount" header="Amount"></Column>
+				<Column field="date" header="Date" :sortable="true"></Column>
+			</DataTable>
+		</div>
+		<PieChart
+			v-if="isLoaded"
+			:labels="labels"
+			:dataset="dataset"
+			class="align-self-start ml-auto"
+		/>
+	</div>
 </template>
 
 <script>
-import PieChart from "@/components/PieChart.vue"
+import PieChart from "@/components/Charts/PieChart.vue"
 import { mapState } from "vuex"
-// import { getPrices } from "../api"
+import DataTable from "primevue/datatable"
+import Column from "primevue/column"
+import InputText from "primevue/inputtext"
+import Dropdown from "primevue/dropdown"
 export default {
 	name: "Potfolio",
-	components: { PieChart },
+	components: { PieChart, DataTable, Column, InputText, Dropdown },
 	data() {
 		return {
 			isLoaded: false,
 			balance: [
 				{
 					id: "bitcoin",
-					amount: 2,
+					amount: 0,
 				},
 				{
 					id: "ethereum",
-					amount: 130,
+					amount: 7,
 				},
 				{
 					id: "usd",
-					amount: 12000,
+					amount: 11289,
 				},
 			],
 			selectedCur: "bitcoin",
 			baseValue: "usd",
 			inputCur: 0,
-			lastTransactions: [],
+			lastTransactions: [
+				{
+					operation: "arrival",
+					currency: "bitcoin",
+					amount: 1,
+					date: "29.05.2022",
+				},
+				{
+					operation: "outlay",
+					currency: "bitcoin",
+					amount: 1,
+					date: "29.05.2022",
+				},
+				{
+					operation: "arrival",
+					currency: "ethereum",
+					amount: 11.25,
+					date: "28.05.2022",
+				},
+				{
+					operation: "arrival",
+					currency: "usd",
+					amount: 11289,
+					date: "27.05.2022",
+				},
+			],
 		}
 	},
 	created() {
 		const lastTransactionsFromLS = localStorage.getItem("transactions")
 		if (lastTransactionsFromLS) {
 			this.lastTransactions.push(...JSON.parse(lastTransactionsFromLS))
-			console.log(this.lastTransactions)
 		}
 		const balanceFromLS = localStorage.getItem("cryptoBalance")
 		if (balanceFromLS) {
 			this.balance = JSON.parse(balanceFromLS)
-			console.log(this.balance)
 		}
 		this.isLoaded = true
 	},
@@ -81,48 +143,51 @@ export default {
 				: price.toPrecision(2)
 		},
 		addToBalance() {
-			this.balance.find((item) => item.id == this.selectedCur).amount +=
+			this.balance.find((item) => item.id == this.selectedCur).amount += Number(
 				this.inputCur
-			this.lastTransactions.push(
-				`+ ${this.inputCur} ${this.selectedCur} (${
-					this.currencies.find((item) => item.id == this.selectedCur).price *
-					this.inputCur
-				} $)`
 			)
+			this.lastTransactions.push({
+				operation: "income",
+				currency: this.selectedCur,
+				amount: this.inputCur,
+				date: new Date().toLocaleDateString(),
+			})
+			console.log(this.balance)
 			localStorage.setItem(
 				"transactions",
 				JSON.stringify(this.lastTransactions)
 			)
 			localStorage.setItem("cryptoBalance", JSON.stringify(this.balance))
+			this.inputCur = 0
 		},
 		subFromBalance() {
 			this.balance.find((item) => item.id == this.selectedCur).amount -=
 				this.inputCur
-			this.lastTransactions.push(
-				`- ${this.inputCur} ${this.selectedCur} (${
-					this.currencies.find((item) => item.id == this.selectedCur).price *
-					this.inputCur
-				} $)`
-			)
+			this.lastTransactions.push({
+				operation: "outlay",
+				currency: this.selectedCur,
+				amount: this.inputCur,
+				date: new Date().toLocaleDateString(),
+			})
 			localStorage.setItem(
 				"transactions",
 				JSON.stringify(this.lastTransactions)
 			)
 			localStorage.setItem("cryptoBalance", JSON.stringify(this.balance))
+			this.inputCur = 0
 		},
 	},
 	computed: {
 		...mapState(["currencies"]),
 		totalBalance() {
-			return this.balance.reduce((sum, val) => {
-				return this.formatPrice(
-					Number(
+			return this.formatPrice(
+				this.balance.reduce((sum, val) => {
+					return (
 						sum +
-							val.amount *
-								this.currencies.find((item) => item.id == val.id).price
+						val.amount * this.currencies.find((item) => item.id == val.id).price
 					)
-				)
-			}, 0)
+				}, 0)
+			)
 		},
 		labels() {
 			return this.currencies.map((elem) => elem.id)
@@ -139,4 +204,15 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+@media screen and (max-width: 900px) {
+	.budget {
+		flex-direction: column !important;
+		.container {
+			order: -1;
+			margin-left: unset !important;
+			align-self: center !important;
+		}
+	}
+}
+</style>

@@ -1,72 +1,49 @@
 <template>
-	<div class="home">Currency Converter</div>
-	<ul>
-		<li v-for="currency in currencies" v-bind:key="currency.id">
-			{{ currency.id }} == {{ currency.price }}
-		</li>
-	</ul>
-	<input
-		@input="calculate"
-		v-model="val"
-		v-bind:disabled="!isLoaded"
-		type="number"
-	/>
-	<select @change="calculate" id="from" v-model="from">
-		<option
-			v-for="currency in currencies"
-			v-bind:key="currency.id"
-			v-bind:value="currency.id"
-		>
-			{{ currency.id }}
-		</option>
-	</select>
-	<select @change="calculate" id="to" v-model="to">
-		<option
-			v-for="currency in currencies"
-			v-bind:key="currency.id"
-			v-bind:value="currency.id"
-		>
-			{{ currency.id }}
-		</option>
-	</select>
-	<p>{{ res }}</p>
-	<div class="tabs">
-		<button @click="changeChartCur('bitcoin')">btc</button>
-		<button @click="changeChartCur('ethereum')">eth</button>
+	<p class="text-center text-3xl text-primary font-semibold">
+		Currency Converter
+	</p>
+	<Converter class="mt-8 mb-8" />
+	<div class="line-chart">
+		<div class="tabs">
+			<Button
+				label="BTC"
+				:class="[
+					{ 'p-button-outlined': activeCurrency == 'bitcoin' },
+					{ 'p-button-text': activeCurrency != 'bitcoin' },
+				]"
+				@click="changeChartCur('bitcoin')"
+			/>
+			<Button
+				label="ETH"
+				@click="changeChartCur('ethereum')"
+				:class="[
+					{ 'p-button-outlined': activeCurrency == 'ethereum' },
+					{ 'p-button-text': activeCurrency != 'ethereum' },
+				]"
+			/>
+		</div>
+		<LineChart />
 	</div>
-	<Chart :currency="activeCurrency" />
 </template>
 
 <script>
-import Chart from "@/components/Chart.vue"
+import LineChart from "@/components/Charts/LineChart.vue"
 import { mapActions, mapState } from "vuex"
-// import { getPrices } from "../api"
+import Converter from "../components/Converter/Converter.vue"
 export default {
 	name: "Home",
-	components: { Chart },
+	components: { LineChart, Converter },
 	data() {
 		return {
 			isLoaded: false,
-			// currencies: [
-			// 	{ id: "bitcoin", price: null },
-			// 	{ id: "ethereum", price: null },
-			// 	{ id: "usd", price: 1 },
-			// ],
 			baseValue: "usd",
-			graphValue: [],
-			val: null,
-			from: "bitcoin",
-			to: "usd",
-			res: 0,
 		}
 	},
-	computed: { ...mapState(["currencies", "activeCurrency"]) },
+	computed: { ...mapState(["activeCurrency"]) },
 	created() {
-		console.log(this.currencies)
 		this.isLoaded = true
 	},
 	methods: {
-		//api.js
 		...mapActions(["switchGraphCur"]),
 		formatPrice(price) {
 			if (price === "-") {
@@ -78,12 +55,6 @@ export default {
 					: price.toFixed(2)
 				: price.toPrecision(2)
 		},
-		calculate() {
-			const val = this.val
-			const fromPrice = this.currencies.find((elem) => elem.id == this.from)
-			const ToPrice = this.currencies.find((elem) => elem.id == this.to)
-			this.res = this.formatPrice((val * fromPrice.price) / ToPrice.price)
-		},
 		changeChartCur(cur) {
 			this.switchGraphCur(cur)
 		},
@@ -91,8 +62,14 @@ export default {
 }
 </script>
 
-<style scoped>
+<style scoped lang="postcss">
 .tabs {
-	margin: 30px 0;
+	border-bottom: 3px solid #0b213f;
+}
+.line-chart {
+	max-height: 300px;
+	max-width: 800px;
+	margin: 0 auto;
+	margin-top: 50px;
 }
 </style>
